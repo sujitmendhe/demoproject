@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/sujitmendhe/demoproject.git
-    path: k8/argocd-app.yml
+    path: k8
     targetRevision: main
   destination:
     server: https://kubernetes.default.svc
