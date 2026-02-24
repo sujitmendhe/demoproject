@@ -8,11 +8,11 @@ spec:
   source:
     repoURL: https://github.com/sujitmendhe/demoproject.git
     path: .
-    trgetRevision: main
+    targetRevision: main
   destination:
     server: https://kubernetes.default.svc
     namespace: google
   syncPolicy:
     automated:
-      prune:false
+      prune: false
       selfHeal: true
