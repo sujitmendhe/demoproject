@@ -3,7 +3,7 @@ name: demoproject
 on:
   push:
     branches:
-      -  main:
+      -  main
 
 env:
   AWS_REGION: us-east-1
