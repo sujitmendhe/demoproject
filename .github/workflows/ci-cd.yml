@@ -1,0 +1,58 @@
+name: demoproject
+
+on:
+  push:
+    branches:
+      -  main
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID}}.dkr.ecr.us-east-1.amazonaws.com
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GIT_PAT }}
+      
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Login to ECR 
+        uses: aws-actions/amazon-ecr-login@v2
+      
+      - name: Build and push docker image
+        run: |
+          set -e
+          IMAGE_TAG="${GITHUB_SHA}"
+
+          if [ ! -f "Dockerfile" ]; then
+            echo "No Dockerfile "
+            exit 0
+          fi
+
+          echo "Building frontend"
+
+          REPO_NAME="site-frontend"
+          IMAGE_URI="$ECR_REGISTRY/$REPO_NAME:$IMAGE_TAG"
+
+          aws ecr describe-repositories --repository-name $REPO_NAME >/dev/null 2>&1 || \
+            aws ecr create-repository \
+            --repository-name $REPO_NAME \
+            --image-scanning-configuration scanOnPush=true
+
+          docker build -t $IMAGE_URI .
+          docker push $IMAGE_URI
+
+          sed -i "s|image:.*|image: $IMAGE_URI|g" backend.yml
